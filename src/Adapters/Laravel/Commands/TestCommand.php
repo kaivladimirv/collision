@@ -10,6 +10,7 @@ use Dotenv\Store\StoreBuilder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Env;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 use NunoMaduro\Collision\Adapters\Laravel\Exceptions\RequirementsException;
 use NunoMaduro\Collision\Coverage;
 use ParaTest\Options;
@@ -236,9 +237,18 @@ class TestCommand extends Command
                 && ! Str::startsWith($option, '--min');
         }));
 
-        return array_merge($this->commonArguments(), ['--configuration='.$this->getConfigurationFile()], $options);
+        if (!$this->isConfigurationSpecified($options)) {
+            $options = array_merge($options, ['--configuration='.$this->getConfigurationFile()]);
+        }
+
+        return array_merge($this->commonArguments(), $options);
     }
 
+    protected function isConfigurationSpecified(array $options): bool
+    {
+        return !is_null(Arr::first($options, fn (string $option) => Str::startsWith($option, '--configuration=')));
+    }
+    
     /**
      * Get the configuration file.
      *
